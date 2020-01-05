@@ -1,5 +1,5 @@
 [package]
-name = "d"
+name = "my2pg"
 version = "0.1.0"
 authors = ["max"]
 edition = "2018"

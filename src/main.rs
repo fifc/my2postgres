@@ -1,15 +1,15 @@
 extern crate postgres;
 
-use std::io::BufRead;
 use postgres::{Client, NoTls};
+use std::io::BufRead;
 
-static DEBUG:i32 = 1;
+static DEBUG: i32 = 1;
 
 fn test_buf() {
-    let mut vc: Vec<u8> = vec!(0; 1<<24);
-    vc.insert((1<<24)-1, 1);
-    let vb = &mut vc[..(1<<24)];
-    vb[(1<<24)-1] = 1;
+    let mut vc: Vec<u8> = vec![0; 1 << 24];
+    vc.insert((1 << 24) - 1, 1);
+    let vb = &mut vc[..(1 << 24)];
+    vb[(1 << 24) - 1] = 1;
     vc[2] = 1;
     use std::alloc::{alloc, dealloc, Layout};
     let layout = Layout::new::<u64>();
@@ -49,9 +49,9 @@ fn test_pg(pg: &mut Client) -> Result<u32, String> {
 }
 
 fn import(pg: &mut Client, reader: &mut std::io::BufReader<std::fs::File>) {
-    let mut total:u32 = 0;
-    let mut sqlnum:u32 = 0;
-    let mut rownum:u32 = 0;
+    let mut total: u32 = 0;
+    let mut sqlnum: u32 = 0;
+    let mut rownum: u32 = 0;
     for (_i, line) in reader.lines().enumerate() {
         total += 1;
         let mut line = line.unwrap();
@@ -66,7 +66,7 @@ fn import(pg: &mut Client, reader: &mut std::io::BufReader<std::fs::File>) {
             unsafe {
                 let body = line.get_unchecked_mut(res.unwrap()..);
                 sql.push_str(body);
-                println!("{}",sql.get_unchecked_mut(..100));
+                println!("{}", sql.get_unchecked_mut(..100));
             }
 
             //continue;
@@ -85,11 +85,11 @@ fn import(pg: &mut Client, reader: &mut std::io::BufReader<std::fs::File>) {
         }
     }
 
-    println!("total:{}, sql:{}, row:{}",total, sqlnum, rownum);
+    println!("total:{}, sql:{}, row:{}", total, sqlnum, rownum);
 }
 
 fn main() {
-    let args:Vec<String> = std::env::args().collect();
+    let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
         println!("usage: {} mysql-dump-file", args[0]);
         return;
@@ -98,8 +98,8 @@ fn main() {
     test_buf();
     let pgres = Client::connect("host=192.168.56.107 user=y dbname=im", NoTls);
     if pgres.is_err() {
-        println!("{}",pgres.err().unwrap());
-        return
+        println!("{}", pgres.err().unwrap());
+        return;
     }
     let mut pg = &mut pgres.unwrap();
     test_pg(&mut pg).unwrap();
