@@ -1,7 +1,4 @@
-extern crate postgres;
-
-use postgres::{Client, NoTls};
-use std::io::BufRead;
+mod my2pg;
 
 static DEBUG: i32 = 1;
 
@@ -29,65 +26,6 @@ fn test_buf() {
     }
 }
 
-fn test_pg(pg: &mut Client) -> Result<u32, String> {
-    let id = 5i64;
-    let name = "hello";
-
-    let res = pg.execute("insert into t(id,name) values($1, $2)", &[&id, &name]);
-    if res.is_ok() {
-        println!("insert ok");
-    } else {
-        println!("{}", res.err().unwrap());
-    }
-
-    for row in pg.query("select id, name from t", &[]).unwrap() {
-        let id: i64 = row.get(0);
-        let name: &str = row.get(1);
-        println!("id: {}, name: {}", id, name);
-    }
-    Ok(0)
-}
-
-fn import(pg: &mut Client, reader: &mut std::io::BufReader<std::fs::File>) {
-    let mut total: u32 = 0;
-    let mut sqlnum: u32 = 0;
-    let mut rownum: u32 = 0;
-    for (_i, line) in reader.lines().enumerate() {
-        total += 1;
-        let mut line = line.unwrap();
-        if line.starts_with("INSERT INTO ") {
-            sqlnum += 1;
-            let mut sql = "INSERT INTO s".to_owned();
-            //let pos = if line.chars().nth(14) == Some('`') {15} else if line.chars().nth(15) == Some('`') {16} else {21};
-            let res = line.find(" VALUES (");
-            if res == None {
-                continue;
-            }
-            unsafe {
-                let body = line.get_unchecked_mut(res.unwrap()..);
-                sql.push_str(body);
-                println!("{}", sql.get_unchecked_mut(..100));
-            }
-
-            //continue;
-
-            let statement = pg.prepare(&sql).unwrap();
-            let res = pg.execute(&statement, &[]);
-            if res.is_ok() {
-                let rows = res.unwrap();
-                rownum += rows as u32;
-                println!("{} rows inserted", rows);
-            } else {
-                println!("{}", res.err().unwrap());
-            }
-        } else {
-            //println!("{}",line);
-        }
-    }
-
-    println!("total:{}, sql:{}, row:{}", total, sqlnum, rownum);
-}
-
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
@@ -96,16 +34,6 @@ fn main() {
     }
     let filename = &args[1];
     test_buf();
-    let pgres = Client::connect("host=192.168.56.107 user=y dbname=im", NoTls);
-    if pgres.is_err() {
-        println!("{}", pgres.err().unwrap());
-        return;
-    }
-    let mut pg = &mut pgres.unwrap();
-    test_pg(&mut pg).unwrap();
-    //let filename = "C:\\Users\\max\\Documents\\dumps\\Dump20191229\\app_s.sql";
-    println!("filename: {}", filename);
-    let file = std::fs::File::open(filename).unwrap();
-    let mut reader = std::io::BufReader::new(file);
-    import(&mut pg, &mut reader);
+
+    my2pg::run(filename, &"host=192.168.56.107 user=y dbname=im".to_string());
 }
