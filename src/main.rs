@@ -1,39 +1,30 @@
+mod cfg;
+mod test;
 mod my2pg;
+mod my2pg_file;
 
-static DEBUG: i32 = 1;
-
-fn test_buf() {
-    let mut vc: Vec<u8> = vec![0; 1 << 24];
-    vc.insert((1 << 24) - 1, 1);
-    let vb = &mut vc[..(1 << 24)];
-    vb[(1 << 24) - 1] = 1;
-    vc[2] = 1;
-    use std::alloc::{alloc, dealloc, Layout};
-    let layout = Layout::new::<u64>();
-    unsafe {
-        let ptr = alloc(layout);
-
-        let slice = std::slice::from_raw_parts_mut(ptr as *mut i64, 100);
-        let val = 123456789012345678i64;
-        slice[2] = val;
-
-        assert_eq!(slice[2], val);
-        if DEBUG == 0 {
-            dealloc(ptr, layout);
-        } else {
-            let _str = String::from_raw_parts(slice.as_mut_ptr() as *mut u8, 20, 100);
-        }
-    }
+/*
+#[tokio::main]
+async fn main() {
+    let f = async { print!("hello world");}.then(|a| {} );
+    f.await;
+    //let handle = tokio::spawn(f);
+    //let res = handle.await;
+    //println!("{:?}", res);
 }
+*/
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(),std::io::Error>{
+    test::run_tests();
+
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
-        println!("usage: {} mysql-dump-file", args[0]);
-        return;
+        my2pg::run().await;
+    } else {
+        let filename = &args[1];
+        my2pg_file::run(filename).await;
     }
-    let filename = &args[1];
-    test_buf();
-
-    my2pg::run(filename, &"host=192.168.56.107 user=y dbname=im".to_string());
+    Ok(())
+    //println!("usage: {} [dump-file]", args[0]);
 }

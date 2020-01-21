@@ -7,4 +7,13 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-    postgres = { git = "https://github.com/sfackler/rust-postgres.git" }
+    chrono = "*"
+    futures = "*"
+    tokio = "*"
+    mysql_async = "*"
+    tokio-postgres = "*"
+    deadpool-postgres = "*"
+    yaml-rust = "*"
+
+[workspace]
+    members = [ "async" ]
