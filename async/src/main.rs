@@ -17,7 +17,7 @@ async fn say(greet: &str, whom: &str) -> Result<(),()> {
 }
 
 fn main() {
-    futures::executor::block_on(async {
+    let _ = futures::executor::block_on(async {
         futures::join!(
             hello("hello"),
             hello("hi"),

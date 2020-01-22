@@ -63,7 +63,7 @@ async fn migrate_batch(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool, t
     const STEP:usize = (BATCH_NUM as usize/1000*100);
 
     let mysql = mysql_pool.get_conn().await.unwrap();
-    print!("> ");
+    print!(">\t");
     std::io::stdout().flush().unwrap();
     let mut sql = build_sql(timestamp, filter);
     let result = mysql.prep_exec(sql, ()).await.unwrap();
