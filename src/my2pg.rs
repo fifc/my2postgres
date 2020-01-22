@@ -40,9 +40,23 @@ struct Record {
     ts: i64
 }
 
-const BATCH_NUM:i32 = 5010;
+const BATCH_NUM:i32 = 5000;
 const DST_TABLE:&str = "d";
 const APP_TABLE:&str = "accstat";
+
+fn build_sql(timestamp: u64, filter: &[u64]) -> String {
+    let select = "select uid,qua,deviceinfo dev,network,code,host,port,timecost cost,addr,unix_timestamp(timestamp) ts from";
+    if filter.is_empty() {
+        format!("{} {} where timestamp>from_unixtime({}) limit {}", select, APP_TABLE, timestamp, BATCH_NUM)
+    } else {
+        let mut filter_set = format!("{}", filter[0]);
+        for i in 1..filter.len() {
+            filter_set += format!(",{}", filter[i]).as_str();
+        }
+        format!("{0} {1} where timestamp>from_unixtime({2}) or (timestamp=from_unixtime({2}) and uid not in ({3})) limit {4}",
+                select, APP_TABLE, timestamp, filter_set, BATCH_NUM)
+    }
+}
 
 async fn migrate_batch(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool, timestamp: u64, filter: &[u64]) -> usize {
     let mut total: usize = 0;
@@ -51,7 +65,7 @@ async fn migrate_batch(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool, t
     let mysql = mysql_pool.get_conn().await.unwrap();
     print!("> ");
     std::io::stdout().flush().unwrap();
-    let mut sql = format!("select uid,qua,deviceinfo,network,code,host,port,timecost,addr,unix_timestamp(timestamp) ts from {} where timestamp>=from_unixtime({}) limit {}", APP_TABLE, timestamp, BATCH_NUM);
+    let mut sql = build_sql(timestamp, filter);
     let result = mysql.prep_exec(sql, ()).await.unwrap();
     let (_, rows) = result.map_and_drop(|row| {
         let (id,qua,dev,net,code,host,port,cost,addr,ts):
@@ -68,13 +82,12 @@ async fn migrate_batch(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool, t
     let stmt = pg.prepare(sql.as_str()).await.unwrap();
 
     total = 0usize;
-    let mut i:usize = 0;
     for row in &rows {
-        i += 1;
-        if (i%STEP) == 0 /*|| i == rows.len() - 1*/ { print!("*"); std::io::stdout().flush().unwrap();}
-        if row.ts == timestamp as i64 && filter.contains(&(row.id as u64)) { continue; }
-        pg.execute(&stmt, &[&row.id, &row.qua, &row.dev, &row.net, &row.code, &row.host, &row.port, &row.cost, &row.addr, &(row.ts as f64)]).await.unwrap() as usize;
         total += 1;
+        if (total%STEP) == 0 /*|| i == rows.len() - 1*/ { print!("*"); std::io::stdout().flush().unwrap();}
+        pg.execute(&stmt,
+                   &[&row.id, &row.qua, &row.dev, &row.net, &row.code, &row.host, &row.port, &row.cost, &row.addr, &(row.ts as f64)])
+            .await.unwrap() as usize;
     }
 
     total
@@ -99,6 +112,10 @@ async fn migrate(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool) {
 
         print!("[{}] ", to_timestamp(timestamp as u64));
         std::io::stdout().flush().unwrap();
+
+        if filter.len() > 1000 {
+            filter.clear();
+        }
 
         let num = migrate_batch(pg_pool, mysql_pool, timestamp as u64, &filter).await;
         total += num as usize;
