@@ -1,7 +1,7 @@
 mod cfg;
 mod test;
 mod my2pg;
-mod my2pg_file;
+mod stream;
 
 /*
 #[tokio::main]
@@ -20,10 +20,10 @@ async fn main() -> Result<(),std::io::Error>{
 
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
-        my2pg::run().await;
+        stream::run().await;
     } else {
         let filename = &args[1];
-        my2pg_file::run(filename).await;
+        my2pg::run(filename).await;
     }
     Ok(())
     //println!("usage: {} [dump-file]", args[0]);

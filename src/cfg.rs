@@ -5,6 +5,7 @@ pub static DEBUG: i32 = 1;
 
 pub struct MySQLConfig {
     pub host_: String,
+    pub ip_: String,
     pub port_: u16,
     pub user_: String,
     pub passwd_: String
@@ -19,10 +20,11 @@ pub fn init(filename: &str) {
     reader.read_to_string(&mut tmp_str).unwrap();
     let doc = yaml_rust::YamlLoader::load_from_str(tmp_str.as_str()).unwrap();
     let mut mysql_config = MySQLConfig{
-        host_: "localhost".parse().unwrap(),
+        host_: "localhost".to_string(),
+        ip_: "".to_string(),
         port_:3306,
-        user_: "root".parse().unwrap(),
-        passwd_:"".parse().unwrap()
+        user_: "root".to_string(),
+        passwd_:"".to_string()
     };
 
     let mysql = &doc[0]["mysql"];
@@ -30,6 +32,10 @@ pub fn init(filename: &str) {
         let mut opt = &mysql["host"];
         if ! opt.is_badvalue() {
             mysql_config.host_ = opt.as_str().unwrap().to_string();
+        }
+        let mut opt = &mysql["ip"];
+        if ! opt.is_badvalue() {
+            mysql_config.ip_ = opt.as_str().unwrap().to_string();
         }
         opt = &mysql["port"];
         if ! opt.is_badvalue() {
@@ -50,7 +56,7 @@ pub fn init(filename: &str) {
     unsafe {
         match &MYSQL_CONFIG {
             Some(config) => {
-                println!("mysql config: {}:{}@{}:{}", config.user_,config.passwd_,config.host_,config.port_);
+                //println!("mysql config: {}:{}@{}[{}]:{}", config.user_,config.passwd_,config.host_,config.ip_,config.port_);
             }
             //_ => { panic("error load config") }
             _ => {}
