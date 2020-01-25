@@ -1,7 +1,6 @@
 extern crate chrono;
 
 use std::io::Write;
-use futures::FutureExt;
 use futures::io::ErrorKind;
 use mysql_async::prelude::*;
 use deadpool_postgres::{Manager, Pool};
@@ -30,18 +29,30 @@ struct Record {
 
 async fn init_pg() -> Pool {
     let mut cfg = tokio_postgres::Config::new();
-    cfg.host("192.168.56.107");
-    cfg.dbname("im");
-    cfg.user("y");
-    //cfg.password("db");
+    match unsafe { &super::cfg::MY_CONFIG} {
+        Some(config) => {
+            let pg = &config.postgres;
+            cfg.host((if pg.ip_.is_empty() {&pg.host_} else {&pg.ip_}).as_str());
+            if pg.port_ != 0 {
+                cfg.port(pg.port_);
+            }
+            cfg.dbname(pg.db_.as_str());
+            cfg. user(pg.user_.as_str());
+            if ! pg.passwd_.is_empty() {
+                cfg.password(pg.passwd_.as_str());
+            }
+        }
+        _ => {}
+    }
     let mgr = Manager::new(cfg, tokio_postgres::NoTls);
     Pool::new(mgr, 15)
 }
 
 async fn init_mysql() -> Result<mysql_async::Pool,std::io::Error> {
-    match unsafe { &super::cfg::MYSQL_CONFIG} {
+    match unsafe { &super::cfg::MY_CONFIG} {
         Some(config) => {
-            let url = format!("mysql://{}:{}@{}:{}/app", config.user_,config.passwd_,if config.ip_.is_empty() {&config.host_} else {&config.ip_},config.port_);
+            let my = &config.mysql;
+            let url = format!("mysql://{}:{}@{}:{}/{}", my.user_,my.passwd_,if my.ip_.is_empty() {&my.host_} else {&my.ip_},if my.port_ != 0 {my.port_} else {3306},my.db_);
             //println!("mysql={}",url);
             Ok(mysql_async::Pool::new(url))
         }
