@@ -5,7 +5,7 @@ use futures::io::ErrorKind;
 use mysql_async::prelude::*;
 use deadpool_postgres::{Manager, Pool};
 
-const BATCH_NUM:i32 = 5000;
+const BATCH_NUM:i32 = 1000;
 const DST_TABLE:&str = "s";
 const APP_TABLE:&str = "accstat";
 
@@ -67,7 +67,7 @@ async fn poll_stream(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool, sta
     const STEP:usize = (BATCH_NUM as usize/1000*100);
 
     let mysql = mysql_pool.get_conn().await.unwrap();
-    print!(">\t"); std::io::stdout().flush().unwrap();
+    print!("->  "); std::io::stdout().flush().unwrap();
     let mut sql = build_sql(state.timestamp, &state.filter);
     let result = mysql.prep_exec(sql, ()).await.unwrap();
     let (_, rows) = result.map_and_drop(|row| {
@@ -86,7 +86,7 @@ async fn poll_stream(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool, sta
     total = 0usize;
     for row in &rows {
         total += 1;
-        if (total%STEP) == 0 /*|| i == rows.len() - 1*/ { print!("="); std::io::stdout().flush().unwrap();}
+        if (total%STEP) == 0 /*|| i == rows.len() - 1*/ { print!("s"); std::io::stdout().flush().unwrap();}
         pg.execute(&stmt,
                    &[&row.id, &row.qua, &row.dev, &row.net, &row.code, &row.host, &row.port, &row.cost, &row.addr, &(row.ts as f64)])
             .await.unwrap() as usize;
@@ -97,7 +97,17 @@ async fn poll_stream(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool, sta
 
 
 async fn init_state(pg_pool: &mut Pool, state: &mut State) {
-    let pg = pg_pool.get().await.unwrap();
+    let pg = {
+        let res = pg_pool.get().await;
+        match &res {
+            Ok(_pool) => {
+            }
+            Err(_e) => {
+                println!("error conect to posgresql!");
+            }
+        }
+        res.unwrap()
+    };
     let sql = format!("select uid,deviceinfo,date_part('epoch',timestamp)::int ts from {0} where timestamp in (select max(timestamp) from {0})", DST_TABLE);
     let stmt = pg.prepare(sql.as_str()).await.unwrap();
     let res = pg.query(&stmt, &[]).await.unwrap();
@@ -134,7 +144,7 @@ fn to_timestamp(timestamp: u64) -> String {
     let dur = std::time::UNIX_EPOCH + std::time::Duration::from_secs(timestamp);
     let datetime = chrono::prelude::DateTime::<chrono::prelude::Utc>::from(dur);
     //datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string()
-    datetime.format("%m-%d %H:%M:%S.%3f").to_string()
+    datetime.format("%H:%M:%S.%3f %h %d").to_string()
 }
 
 pub async fn run() {

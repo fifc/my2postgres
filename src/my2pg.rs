@@ -11,7 +11,7 @@ pub fn init() -> Pool {
     Pool::new(mgr, 15)
 }
 
-
+/*
 async fn test_pg(pool: &mut Pool) -> Result<u32, String> {
     let id = 5i64;
     let name = "hello";
@@ -31,6 +31,7 @@ async fn test_pg(pool: &mut Pool) -> Result<u32, String> {
     }
     Ok(0)
 }
+*/
 
 async fn import(pool: &mut Pool, reader: &mut std::io::BufReader<std::fs::File>) {
     let mut total: u32 = 0;
