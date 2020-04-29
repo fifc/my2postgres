@@ -14,3 +14,4 @@ edition = "2018"
     tokio-postgres = "*"
     deadpool-postgres = "*"
     yaml-rust = "*"
+[workspace]

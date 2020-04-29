@@ -17,5 +17,5 @@ workspace = ".."
     serde = { version = "1.0", features = ["derive"] }
     serde_json = "1.0"
     #actix-web = { git = "https://github.com/actix/actix-web", features=["openssl"] }
-    #actix-web = { git = "https://github.com/actix/actix-web" }
-    actix-web = { path = "../../actix-web" }
+    actix-web = { git = "https://github.com/actix/actix-web" }
+    #actix-web = { path = "../../actix-web" }
