@@ -64,7 +64,7 @@ async fn init_mysql() -> Result<mysql_async::Pool,std::io::Error> {
 
 async fn poll_stream(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool, state: &mut State) -> usize {
     let mut total: usize = 0;
-    const STEP:usize = (BATCH_NUM as usize/1000*100);
+    const STEP:usize = BATCH_NUM as usize/1000*100;
 
     let mysql = mysql_pool.get_conn().await.unwrap();
     print!("->  "); std::io::stdout().flush().unwrap();
@@ -151,8 +151,31 @@ pub async fn run() {
     super::cfg::init("config.yml");
     let mut pg = init_pg().await;
     let mut mysql = init_mysql().await.unwrap();
-    super::stream::stream(&mut pg, &mut mysql).await;
+    stream(&mut pg, &mut mysql).await;
     mysql.disconnect().await.unwrap()
+}
+
+pub async fn run_sp() {
+    super::cfg::init("config.yml");
+    let pool = init_mysql().await.unwrap();
+    let mut total = 0i64;
+    for i in 0..1000 {
+        let mysql = pool.get_conn().await.unwrap();
+        print!("{}: ", i); std::io::stdout().flush().unwrap();
+        //let sql = format!("select count(0) from miliao_{0}_msg.{0}_message_{1}", "group", i);
+        let sql = format!("select count(0) from anonymous_chat_msg.chat_message_{}", i);
+        let result = mysql.prep_exec(sql, ()).await.unwrap();
+        let (_, _rows) = result.map_and_drop(|row| {
+            let n:i64 = row.get(0).unwrap();
+            total += n;
+            println!("{:#?}\t{:#?}", n, total);
+            n
+        }).await.unwrap();
+    }
+
+    println!("total: {:#?}", total);
+
+    pool.disconnect().await.unwrap()
 }
 
 pub async fn stream(pg_pool: &mut Pool, mysql_pool: &mut mysql_async::Pool) {

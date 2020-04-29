@@ -1,7 +1,7 @@
 [package]
 name = "async"
 version = "0.1.0"
-authors = ["max <you@example.com>"]
+authors = ["max <max@y.com>"]
 edition = "2018"
 workspace = ".."
 

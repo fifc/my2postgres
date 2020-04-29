@@ -10,10 +10,10 @@ edition = "2018"
     chrono = "*"
     futures = "*"
     tokio = "*"
+    yaml-rust = "*"
     mysql_async = "*"
     tokio-postgres = "*"
     deadpool-postgres = "*"
-    yaml-rust = "*"
 
 [workspace]
     members = [ "async" ]

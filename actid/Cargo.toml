@@ -1,0 +1,26 @@
+[package]
+name = "actid"
+version = "0.1.2"
+authors = ["max <max@y.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+    rand = "*"
+    tokio = "*"
+    actix-rt = "*"
+    serde_json = "*"
+    yaml-rust = "*"
+    db = { path = "./db" }
+    serde = { version = "*", features = ["derive"] }
+    #actix-web = { git = "https://github.com/actix/actix-web", features=["openssl"] }
+    actix-web = { git = "https://github.com/actix/actix-web" }
+    #actix-web = { path = "../actix-web" }
+
+[patch.crates-io]
+    #actix-web = { path = "../actix-web" }
+    #awc = { path = "../actix-web/awc" }
+
+[workspace]
+    members = ["db","server"]

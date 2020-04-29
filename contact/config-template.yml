@@ -1,0 +1,16 @@
+mysql:
+  host: 'myhost'
+  ip: '1.1.1.1'
+  port: 5007
+  db: 'mysql'
+  user: 'root'
+  passwd: 'abcdefghi'
+postgres:
+  host: 'pg'
+  ip: '192.168.56.107'
+  #ip: '127.0.0.1'
+  #port: 5432
+  db: 'db'
+  user: 'user'
+  #passwd: 'password'
+

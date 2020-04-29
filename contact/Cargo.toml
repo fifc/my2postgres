@@ -1,0 +1,16 @@
+[package]
+name = "contact"
+version = "0.1.0"
+authors = ["max"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+    chrono = "*"
+    futures = "*"
+    tokio = "*"
+    mysql_async = "*"
+    tokio-postgres = "*"
+    deadpool-postgres = "*"
+    yaml-rust = "*"

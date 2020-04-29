@@ -1,0 +1,21 @@
+[package]
+name = "server"
+version = "0.1.0"
+authors = ["max <y@y.com>"]
+edition = "2018"
+workspace = ".."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+    rand = "0.7.2"
+    actix-rt = "1.0.0"
+    futures = "*"
+    validator = "*"
+    validator_derive = "*"
+    env_logger = "*"
+    serde = { version = "1.0", features = ["derive"] }
+    serde_json = "1.0"
+    #actix-web = { git = "https://github.com/actix/actix-web", features=["openssl"] }
+    #actix-web = { git = "https://github.com/actix/actix-web" }
+    actix-web = { path = "../../actix-web" }

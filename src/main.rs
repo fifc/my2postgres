@@ -21,6 +21,8 @@ async fn main() -> Result<(),std::io::Error>{
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
         stream::run().await;
+    } else if args[1] == "+mn" {
+        stream::run_sp().await;
     } else {
         let filename = &args[1];
         my2pg::run(filename).await;
