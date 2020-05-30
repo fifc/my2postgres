@@ -23,4 +23,4 @@ edition = "2018"
     #awc = { path = "../actix-web/awc" }
 
 [workspace]
-    members = ["db","server"]
+    members = ["db"]

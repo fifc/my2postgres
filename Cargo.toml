@@ -16,4 +16,4 @@ edition = "2018"
     deadpool-postgres = "*"
 
 [workspace]
-    members = [ "async" ]
+    members = []
