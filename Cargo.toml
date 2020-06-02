@@ -17,3 +17,4 @@ edition = "2018"
 
 [workspace]
     members = []
+    exclude = ["ecc"]
